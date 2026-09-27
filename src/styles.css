@@ -59,6 +59,16 @@ button { cursor: pointer; }
   margin: 0 0 1rem;
 }
 
+.mark .ghost { margin-left: auto; }
+
+.help h3 { margin: 1.1rem 0 0.4rem; font-size: 1.15rem; }
+
+.help ul { margin: 0.4rem 0 0.8rem; padding-left: 1.2rem; }
+
+.help li { margin: 0.35rem 0; }
+
+.help .row { margin: 0.8rem 0 1rem; }
+
 .mark img { width: 3rem; height: 3rem; border-radius: 0.8rem; }
 
 .mark h1 { font-size: 1.35rem; margin: 0; letter-spacing: -0.02em; }

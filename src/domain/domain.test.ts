@@ -21,6 +21,8 @@ import {
   swapNowWithNext,
   tick,
 } from './tasks';
+import { articleText } from '../help/articles';
+import { applyStuckMove, stuckChoices } from './stuck';
 import { dateKey, nextHalfHour } from './time';
 import { emptySnapshot, type CachedEvent, type Task } from './types';
 
@@ -166,6 +168,8 @@ describe('email', () => {
 describe('copy and deadlines', () => {
   it('keeps the voice free of shame and cheerleading', () => {
     expect(calmCopyViolations(allCopyStrings())).toEqual([]);
+    expect(calmCopyViolations(articleText())).toEqual([]);
+    expect(articleText()[0]).toBe('Get Started');
   });
 
   it('orders the next 7 days and does not say overdue', () => {
@@ -317,6 +321,39 @@ describe('calendar links', () => {
     const payload = JSON.parse(zohoEventData({ title: 'Recovery', start, end, busy: true })) as { title: string; transparency: number };
     expect(payload.title).toBe('Recovery');
     expect(payload.transparency).toBe(0);
+  });
+});
+
+describe('stuck', () => {
+  it('offers a recovery path after a crash and does not move Now until asked', () => {
+    const current = task({ title: 'Now', status: 'today-now' });
+    const upcoming = task({ title: 'Next', status: 'today-next', sort: 1 });
+    expect(stuckChoices('crashed', { hasNow: true, hasNext: true, hasInbox: false })).toEqual([
+      'keep-and-recover',
+      'park-and-recover',
+      'park',
+    ]);
+    const kept = applyStuckMove([current, upcoming], 'keep-and-recover', NOW);
+    expect(kept.recover).toBe(true);
+    expect(nowTask(kept.tasks)?.title).toBe('Now');
+    const promoted = applyStuckMove([current, upcoming], 'park-and-promote', NOW);
+    expect(nowTask(promoted.tasks)?.title).toBe('Next');
+    expect(promoted.tasks.find((item) => item.title === 'Now')?.status).toBe('week');
+    expect(nextTasks(promoted.tasks)).toHaveLength(0);
+  });
+
+  it('offers a way through a freeze without adding a second Now', () => {
+    expect(stuckChoices('frozen', { hasNow: true, hasNext: true, hasInbox: true })).toEqual([
+      'swap',
+      'park-and-promote',
+      'clear-now',
+      'open-triage',
+    ]);
+    expect(stuckChoices('frozen', { hasNow: false, hasNext: false, hasInbox: false })).toEqual(['recover-only']);
+    const current = task({ title: 'Now', status: 'today-now' });
+    const cleared = applyStuckMove([current], 'clear-now', NOW);
+    expect(nowTask(cleared.tasks)).toBeNull();
+    expect(cleared.tasks[0]?.status).toBe('week');
   });
 });
 

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { copy } from '../domain/copy';
+import { HelpScreen } from '../help/HelpScreen';
 import { firebaseServices, pingSync, readFirebaseEnv, signInEmail, signInGoogle, signOutUser, watchUser, type FirebaseEnv } from '../data/firebase';
 import { createFirestoreStore } from '../data/firestoreStore';
+import { migrateLocalIntoCloud } from '../data/migrate';
 import { createLocalStore, type DataStore } from '../data/store';
 import {
   BlockDialog,
@@ -23,12 +25,27 @@ export function App() {
   const [deviceOnly, setDeviceOnly] = useState(() => localStorage.getItem(DEVICE_KEY) === '1' || !env);
   const [uid, setUid] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(!env || deviceOnly);
+  const [cloudReady, setCloudReady] = useState(false);
   const store = useMemo(() => {
     if (!authReady) return null;
-    if (env && uid && !deviceOnly) return createFirestoreStore(firebaseServices(env).db, uid);
+    if (env && uid && !deviceOnly) {
+      if (!cloudReady) return null;
+      return createFirestoreStore(firebaseServices(env).db, uid);
+    }
     if (!env || deviceOnly) return createLocalStore();
     return null;
-  }, [authReady, env, uid, deviceOnly]);
+  }, [authReady, env, uid, deviceOnly, cloudReady]);
+
+  useEffect(() => {
+    if (!env || !uid || deviceOnly) return;
+    let cancel = false;
+    void migrateLocalIntoCloud(uid, firebaseServices(env).db).finally(() => {
+      if (!cancel) setCloudReady(true);
+    });
+    return () => {
+      cancel = true;
+    };
+  }, [env, uid, deviceOnly]);
 
   useEffect(() => {
     if (!env || deviceOnly) return;
@@ -49,6 +66,7 @@ export function App() {
     localStorage.removeItem(DEVICE_KEY);
     if (env) void signOutUser(firebaseServices(env).auth);
     setDeviceOnly(false);
+    setCloudReady(false);
     setUid(null);
   }} />;
 }
@@ -80,6 +98,7 @@ function PlannerApp({ store, ownerId, env, onSignOut }: { store: DataStore; owne
           <h1>{copy.appName}</h1>
           <p>{copy.appFullName}</p>
         </div>
+        <button type="button" className="ghost" onClick={planner.openHelp}>{copy.help}</button>
       </header>
       {planner.view === 'today' ? <TodayScreen planner={planner} /> : null}
       {planner.view === 'triage' ? <TriageScreen planner={planner} /> : null}
@@ -89,6 +108,7 @@ function PlannerApp({ store, ownerId, env, onSignOut }: { store: DataStore; owne
       {planner.view === 'project' ? <ProjectScreen planner={planner} /> : null}
       {planner.view === 'deadlines' ? <DeadlineScreen planner={planner} /> : null}
       {planner.view === 'settings' ? <SettingsScreen planner={planner} /> : null}
+      {planner.view === 'help' ? <HelpScreen onBack={planner.openToday} /> : null}
       <SwapDialog planner={planner} />
       <BlockDialog planner={planner} />
       <nav className="nav" aria-label={copy.today}>
@@ -119,6 +139,7 @@ function SignIn({ env, onDevice }: { env: FirebaseEnv; onDevice: () => void }) {
           <p>{copy.appFullName}</p>
         </div>
       </header>
+      <p>{copy.sameAccount}</p>
       <form
         className="card stack"
         onSubmit={(event) => {

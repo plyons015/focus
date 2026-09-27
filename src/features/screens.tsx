@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { linkStatus } from '../domain/calendar';
-import { copy } from '../domain/copy';
+import { copy, stuckLabels } from '../domain/copy';
 import type { ContextTag, Task } from '../domain/types';
 import type { Planner } from '../app/usePlanner';
 
@@ -168,6 +168,30 @@ export function TodayScreen({ planner }: { planner: Planner }) {
           <h2>{copy.emptyNow}</h2>
         )}
       </article>
+      <button type="button" className="ghost" onClick={planner.openStuck}>
+        {copy.stuck}
+      </button>
+      {planner.stuck ? (
+        <div className="card dialog" role="dialog" aria-modal="true" aria-labelledby="stuck-title">
+          <h2 id="stuck-title">{planner.stuck === 'choose' ? copy.pickMove : planner.stuck === 'crashed' ? copy.crashed : copy.frozen}</h2>
+          {planner.stuck !== 'choose' && planner.stuckChoices.length === 0 ? <p>{copy.nothingWaiting}</p> : null}
+          <div className="stack">
+            {planner.stuck === 'choose' ? (
+              <>
+                <button type="button" className="primary" onClick={() => planner.pickStuck('crashed')}>{copy.crashed}</button>
+                <button type="button" className="ghost" onClick={() => planner.pickStuck('frozen')}>{copy.frozen}</button>
+              </>
+            ) : (
+              planner.stuckChoices.map((choice) => (
+                <button key={choice} type="button" className="ghost" onClick={() => planner.applyStuck(choice)}>
+                  {stuckLabels[choice]}
+                </button>
+              ))
+            )}
+            <button type="button" className="ghost" onClick={planner.closeStuck}>{copy.close}</button>
+          </div>
+        </div>
+      ) : null}
       {planner.recoveryFor ? (
         <div className="card">
           <p>{copy.blockRecovery}</p>

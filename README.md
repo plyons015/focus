@@ -2,6 +2,8 @@
 
 ZigZag Neurodivergent Planner. The folder is `focus`. The app on your phone is ZigZag Planner.
 
+Daily use is in [docs/knowledge-base/index.md](docs/knowledge-base/index.md). This file is for running and connecting the project.
+
 One list in, a short triage, then Today: one Now, at most two Next, and a place to capture the next thing. Deep Roots Journal sends only the work that still needs you. Zoho Calendar and Google Calendar show the next few days and can hold a block you create here.
 
 Nothing in this app is Todoist, TickTick, or a paid plugin.

@@ -49,6 +49,7 @@ export const copy = {
   signInMismatch: "That email and password didn't match.",
   googleClosed: "Google didn't open.",
   useThisDevice: 'Use this device only',
+  sameAccount: 'Use the same email on the phone and on the computer.',
   email: 'Email',
   password: 'Password',
   createAccount: 'Create account',
@@ -82,6 +83,34 @@ export const copy = {
   context: 'Context',
   dismissTriage: 'Back to Today',
   length: 'Length',
+  help: 'Help',
+  stuck: "I'm stuck",
+  crashed: 'I crashed',
+  frozen: "I'm frozen",
+  pickMove: 'Pick a next move.',
+  keepAndRecover: 'Keep this and block recovery',
+  parkAndRecover: 'Park this and block recovery',
+  parkOnly: 'Park this',
+  clearNow: 'Send Now to This week',
+  parkAndPromote: 'Park this and start the first Next',
+  startNext: 'Start the first Next',
+  swapWithNext: 'Swap with Next',
+  restOnly: 'Block recovery',
+  sortInbox: 'Sort the inbox',
+  nothingWaiting: 'Nothing is waiting.',
+  helpIntro: 'Get Started is the first note. The others are the same pages, one topic each.',
+} as const;
+
+export const stuckLabels = {
+  'keep-and-recover': copy.keepAndRecover,
+  'park-and-recover': copy.parkAndRecover,
+  park: copy.parkOnly,
+  swap: copy.swapWithNext,
+  'park-and-promote': copy.parkAndPromote,
+  'clear-now': copy.clearNow,
+  'start-next': copy.startNext,
+  'recover-only': copy.restOnly,
+  'open-triage': copy.sortInbox,
 } as const;
 
 const FORBIDDEN = [

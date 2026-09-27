@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { homeTarget } from '../domain/calendar';
+import { applyStuckMove, stuckChoices, type StuckChoice, type StuckKind } from '../domain/stuck';
 import { deadlineRows, deadlineSummary } from '../domain/deadlines';
 import { applyOpenWork, withTombstones, type OpenWorkUpdate } from '../domain/openWork';
 import { createRecoveryBlock } from '../domain/recovery';
@@ -38,7 +39,7 @@ import {
 import type { DataStore } from '../data/store';
 import { listenForShares } from '../sync/share';
 
-export type ViewName = 'today' | 'triage' | 'week' | 'someday' | 'projects' | 'project' | 'settings' | 'deadlines';
+export type ViewName = 'today' | 'triage' | 'week' | 'someday' | 'projects' | 'project' | 'settings' | 'deadlines' | 'help';
 
 export interface SwapAsk {
   incomingId: string;
@@ -90,6 +91,7 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
   const [recoveryFor, setRecoveryFor] = useState(false);
   const [undo, setUndo] = useState<Snapshot | null>(null);
   const [blockAsk, setBlockAsk] = useState<string | null>(null);
+  const [stuck, setStuck] = useState<null | 'choose' | StuckKind>(null);
   const snapRef = useRef(snap);
   snapRef.current = snap;
   const undoTimer = useRef<number | null>(null);
@@ -226,7 +228,27 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
       setView('project');
     },
     openSettings: () => setView('settings'),
+    openHelp: () => setView('help'),
     openDeadlines: () => setView('deadlines'),
+    stuck,
+    stuckChoices: stuck === 'crashed' || stuck === 'frozen'
+      ? stuckChoices(stuck, {
+          hasNow: nowTask(snap.tasks) != null,
+          hasNext: nextTasks(snap.tasks).length > 0,
+          hasInbox: inboxTasks(snap.tasks).length > 0,
+        })
+      : [],
+    openStuck: () => setStuck('choose'),
+    closeStuck: () => setStuck(null),
+    pickStuck: (kind: StuckKind) => setStuck(kind),
+    applyStuck: (choice: StuckChoice) => {
+      const nowIso = new Date().toISOString();
+      const result = applyStuckMove(snapRef.current.tasks, choice, nowIso);
+      setStuck(null);
+      if (result.openTriage) setView('triage');
+      commit(() => ({ ...snapRef.current, tasks: result.tasks }));
+      if (result.recover) setRecoveryFor(true);
+    },
     dismissTriage: () => {
       localStorage.setItem(`zigzag-triage-${dateKey(new Date())}`, '1');
       setView('today');
