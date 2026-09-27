@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.local
+.firebase
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+android/app/google-services.json
+*.apk
+.DS_Store
