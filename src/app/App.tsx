@@ -14,7 +14,6 @@ import {
   SettingsScreen,
   SwapDialog,
   TodayScreen,
-  TriageScreen,
 } from '../features/screens';
 import { usePlanner } from './usePlanner';
 
@@ -101,7 +100,6 @@ function PlannerApp({ store, ownerId, env, onSignOut }: { store: DataStore; owne
         <button type="button" className="ghost" onClick={planner.openHelp}>{copy.help}</button>
       </header>
       {planner.view === 'today' ? <TodayScreen planner={planner} /> : null}
-      {planner.view === 'triage' ? <TriageScreen planner={planner} /> : null}
       {planner.view === 'week' ? <ListScreen planner={planner} which="week" /> : null}
       {planner.view === 'someday' ? <ListScreen planner={planner} which="someday" /> : null}
       {planner.view === 'projects' ? <ProjectsScreen planner={planner} /> : null}

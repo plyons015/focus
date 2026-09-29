@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { applyConflictChoice, canWriteEvent, homeTarget, linkStatus, zohoEventData, zohoStamp } from './calendar';
 import { allCopyStrings, calmCopyViolations } from './copy';
-import { deadlineRows, deadlineSummary, todayNotices } from './deadlines';
+import { deadlineRows, deadlineSummary, splitByDay, todayNotices } from './deadlines';
+import { planNotices, defaultNotices } from './notices';
 import { parseEmail, parseShare } from './email';
 import { applyOpenWork } from './openWork';
 import { createRecoveryBlock } from './recovery';
@@ -13,7 +14,9 @@ import {
   markDone,
   nextTasks,
   nowTask,
+  openSlot,
   park,
+  placeTask,
   resolveSwap,
   rollover,
   setWhy,
@@ -22,6 +25,7 @@ import {
   tick,
 } from './tasks';
 import { articleText } from '../help/articles';
+import { parseZohoTime, replaceProviderEvents, zohoCalendarPath } from '../sync/zoho';
 import { applyStuckMove, stuckChoices } from './stuck';
 import { dateKey, nextHalfHour } from './time';
 import { emptySnapshot, type CachedEvent, type Task } from './types';
@@ -55,6 +59,27 @@ describe('today limits', () => {
     if (result.type !== 'ok') return;
     expect(nowTask(result.tasks)?.title).toBe('Next');
     expect(nextTasks(result.tasks).map((item) => item.title)).toEqual(['Now']);
+  });
+
+  it('places a new item in the open spot and sends overflow to This week', () => {
+    const fresh = task({ title: 'One', status: 'inbox' });
+    expect(nowTask(placeTask([fresh], fresh.id, 'now', NOW))?.title).toBe('One');
+    expect(openSlot([])).toBe('now');
+    const current = task({ title: 'Now', status: 'today-now' });
+    const a = task({ title: 'A', status: 'today-next', sort: 1 });
+    expect(openSlot([current])).toBe('today');
+    expect(openSlot([current, a])).toBe('today');
+    const b = task({ title: 'B', status: 'today-next', sort: 2 });
+    expect(openSlot([current, a, b])).toBe('week');
+    const extra = task({ title: 'C', status: 'inbox' });
+    const filed = placeTask([current, a, b, extra], extra.id, 'today', NOW);
+    expect(filed.find((item) => item.title === 'C')?.status).toBe('week');
+    expect(nextTasks(filed)).toHaveLength(2);
+    const incoming = task({ title: 'D', status: 'inbox' });
+    const made = placeTask([current, a, b, incoming], incoming.id, 'now', NOW);
+    expect(nowTask(made)?.title).toBe('D');
+    expect(nextTasks(made).map((item) => item.title)).toEqual(['A', 'Now']);
+    expect(made.find((item) => item.title === 'B')?.status).toBe('week');
   });
 
   it('asks before a third Next and can send the new item to This week', () => {
@@ -211,11 +236,13 @@ describe('copy and deadlines', () => {
         },
       ],
     });
-    expect(rows.map((row) => row.title)).toEqual(['Recovery', 'Soon', 'Staff meeting', 'Later']);
-    expect(rows.map((row) => row.label)).toEqual(['Recovery', 'Task', 'Google', 'Task']);
-    const summary = deadlineSummary(now, rows);
+    const parts = splitByDay(rows, now);
+    expect(parts.today.map((row) => row.title)).toEqual(['Recovery']);
+    expect(parts.later.map((row) => row.title)).toEqual(['Soon', 'Staff meeting', 'Later']);
+    const summary = deadlineSummary(now, parts.today);
     expect(summary.toLowerCase()).not.toContain('overdue');
-    expect(summary).toContain('·');
+    expect(summary).toContain('Recovery');
+    expect(summary).not.toContain('Staff meeting');
     expect(todayNotices()).toEqual([]);
   });
 });
@@ -354,6 +381,59 @@ describe('stuck', () => {
     const cleared = applyStuckMove([current], 'clear-now', NOW);
     expect(nowTask(cleared.tasks)).toBeNull();
     expect(cleared.tasks[0]?.status).toBe('week');
+  });
+});
+
+describe('zoho times', () => {
+  it('keeps tomorrow on the clock and leaves other calendars in place', () => {
+    expect(zohoCalendarPath('KnYBkgVSRcmse68awiH5Sg==')).toBe('KnYBkgVSRcmse68awiH5Sg==');
+    expect(parseZohoTime('20260928T100000-0700')).toBe('2026-09-28T17:00:00.000Z');
+    expect(parseZohoTime('20260928T170000Z')).toBe('2026-09-28T17:00:00.000Z');
+    expect(parseZohoTime('20260928')).toBe('2026-09-28T19:00:00.000Z');
+    const kept = replaceProviderEvents(
+      [
+        {
+          id: 'google_1',
+          ownerId: OWNER,
+          provider: 'google',
+          calendarId: 'primary',
+          eventId: '1',
+          title: 'Meet',
+          start: NOW,
+          end: NOW,
+          etag: '1',
+          ownedByZigzag: false,
+          updatedAt: NOW,
+        },
+      ],
+      'zoho',
+      [],
+    );
+    expect(kept.map((event) => event.provider)).toEqual(['google']);
+  });
+});
+
+describe('reminders', () => {
+  it('offers several times and skips a reminder that already passed', () => {
+    const now = new Date('2026-09-27T15:00:00.000Z');
+    const planned = planNotices(
+      [{ id: 'event:1', at: '2026-09-28T17:00:00.000Z', title: 'HRC Worship', label: 'Zoho', addable: true }],
+      now,
+      defaultNotices(),
+    );
+    expect(planned.map((item) => item.body)).toEqual([
+      'Tomorrow: HRC Worship at 10:00 am.',
+      'Today: HRC Worship at 10:00 am.',
+      'HRC Worship starts in 1 hour.',
+      'HRC Worship starts in 15 minutes.',
+      'HRC Worship starts now.',
+    ]);
+    const quiet = planNotices(
+      [{ id: 'event:1', at: '2026-09-28T17:00:00.000Z', title: 'HRC Worship', label: 'Zoho', addable: true }],
+      now,
+      { ...defaultNotices(), eveningBefore: false, morningOf: false, before60: false, before15: false, atTime: false },
+    );
+    expect(quiet).toEqual([]);
   });
 });
 

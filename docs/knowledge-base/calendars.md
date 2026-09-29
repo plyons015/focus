@@ -6,7 +6,7 @@ Zoho and Google are there so you can see what is already on the clock. ZigZag do
 
 Events for the next seven days appear on the top line and in the list you open from it. Each one is labeled **Zoho** or **Google**.
 
-**Add to inbox** is manual. ZigZag will not file a meeting for you.
+**Add to today** is manual. ZigZag will not file a meeting for you. If Today already has one Now and two Next, the button says **Add to this week**.
 
 If a calendar does not answer, your tasks stay. Settings can say **Zoho didn't answer. Your tasks are still here.** or the same for Google. Today does not grow an error banner.
 

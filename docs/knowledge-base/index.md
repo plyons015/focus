@@ -1,6 +1,6 @@
 # ZigZag Planner — how to use it
 
-ZigZag is a small planner. The whole idea is one sentence: capture, triage, do the one Now.
+ZigZag is a small planner. The whole idea is one sentence: add it where it goes, then do the one Now.
 
 On the phone, tap **Help**. **Get Started** is the first note. Connection notes are the next four.
 
@@ -14,9 +14,9 @@ On the phone, tap **Help**. **Get Started** is the first note. Connection notes 
 | [Connect Zoho](connect-zoho.md) | Mail share, and the Zoho calendar. |
 | [Connect Google Calendar](connect-google-calendar.md) | Read the next seven days, and write blocks you create. |
 | [Sign in with Google](sign-in-with-google.md) | The login on the computer, and email sign-in on the phone. |
-| [Today](today.md) | The screen you live on. One Now, two Next, capture. |
-| [Capture](capture.md) | Get something out of your head without filing it. |
-| [Triage](triage.md) | One card at a time: Today, This week, Someday, or Delete. |
+| [Today](today.md) | The screen you live on. Add something, one Now, two Next. |
+| [Capture](capture.md) | Type it and place it in the same step. |
+| [Where it goes](triage.md) | Now, Today, or This week, on the same screen. |
 | [This week, Someday, and projects](lists.md) | Where things wait without sitting on Today. |
 | [Time and recovery](time-and-recovery.md) | The clock line, due dates, and a recovery block. |
 | [Deep Roots](deep-roots.md) | Journal days and action steps that still need you. |

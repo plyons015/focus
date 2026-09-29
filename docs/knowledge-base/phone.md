@@ -13,7 +13,7 @@ You can also install the debug APK that Gradle writes to `android/app/build/outp
 
 ## Share from Zoho Mail
 
-In Zoho Mail, share the message as plain text and choose ZigZag Planner. The subject or first line becomes the title. The rest is the note. It lands in the inbox.
+In Zoho Mail, share the message as plain text and choose ZigZag Planner. The subject or first line becomes the title. The rest is the note. It shows on Today as a waiting card.
 
 ## On this device only
 

@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { homeTarget } from '../domain/calendar';
 import { applyStuckMove, stuckChoices, type StuckChoice, type StuckKind } from '../domain/stuck';
-import { deadlineRows, deadlineSummary } from '../domain/deadlines';
+import { applyNotices } from '../sync/notices';
+import { pullZohoEvents, replaceProviderEvents } from '../sync/zoho';
+import { deadlineRows, deadlineSummary, splitByDay } from '../domain/deadlines';
+import { defaultNotices, type NoticePrefs } from '../domain/notices';
 import { applyOpenWork, withTombstones, type OpenWorkUpdate } from '../domain/openWork';
 import { createRecoveryBlock } from '../domain/recovery';
 import {
   createTask,
-  fileToToday,
   inboxTasks,
-  makeNow,
   markDone,
   moveTo,
   nextTasks,
   nowTask,
+  openSlot,
   park,
+  placeTask,
   removeTask,
   requestCalendar,
   resolveSwap,
@@ -23,9 +26,9 @@ import {
   setDue,
   setProject,
   setWhy,
-  skipInbox,
   swapNowWithNext,
   tasksIn,
+  type Slot,
 } from '../domain/tasks';
 import { dateKey } from '../domain/time';
 import {
@@ -33,13 +36,14 @@ import {
   emptySnapshot,
   type ContextTag,
   type Project,
+  type ProviderLink,
   type Snapshot,
   type Task,
 } from '../domain/types';
 import type { DataStore } from '../data/store';
 import { listenForShares } from '../sync/share';
 
-export type ViewName = 'today' | 'triage' | 'week' | 'someday' | 'projects' | 'project' | 'settings' | 'deadlines' | 'help';
+export type ViewName = 'today' | 'week' | 'someday' | 'projects' | 'project' | 'settings' | 'deadlines' | 'help';
 
 export interface SwapAsk {
   incomingId: string;
@@ -85,7 +89,7 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
   });
   const [snap, setSnap] = useState<Snapshot>(boot.seeded ?? emptySnapshot());
   const [ready, setReady] = useState(demoOn);
-  const [view, setView] = useState<ViewName>(initialDemo.get('view') === 'triage' ? 'triage' : 'today');
+  const [view, setView] = useState<ViewName>('today');
   const [projectId, setProjectId] = useState<string | null>(null);
   const [swap, setSwap] = useState<SwapAsk | null>(boot.opening);
   const [recoveryFor, setRecoveryFor] = useState(false);
@@ -95,6 +99,7 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
   const snapRef = useRef(snap);
   snapRef.current = snap;
   const undoTimer = useRef<number | null>(null);
+  const zohoSynced = useRef(false);
 
   const persist = useCallback(
     (next: Snapshot) => {
@@ -118,6 +123,37 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
     [persist],
   );
 
+  const runZohoSync = useCallback(
+    async (override?: Partial<ProviderLink>) => {
+      const link = { ...snapRef.current.integrations.zoho, ...override };
+      const result = await pullZohoEvents(link, ownerId);
+      const nowIso = new Date().toISOString();
+      commit((current) => ({
+        ...current,
+        events: result.error ? current.events : replaceProviderEvents(current.events, 'zoho', result.events),
+        integrations: {
+          ...current.integrations,
+          google: { ...current.integrations.google, home: false },
+          zoho: {
+            ...current.integrations.zoho,
+            ...override,
+            lastError: result.error,
+            lastSyncedAt: result.error ? current.integrations.zoho.lastSyncedAt ?? null : nowIso,
+          },
+        },
+      }));
+    },
+    [commit, ownerId],
+  );
+
+  useEffect(() => {
+    if (!ready || zohoSynced.current) return;
+    const link = snapRef.current.integrations.zoho;
+    if (!link?.clientId || !link.clientSecret || !link.refreshToken || !link.writeCalendarId) return;
+    zohoSynced.current = true;
+    void runZohoSync();
+  }, [ready, runZohoSync]);
+
   useEffect(() => {
     if (!store) return;
     let cancel = false;
@@ -131,13 +167,10 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
       }
       const now = new Date();
       const rolled = rollover(initial.tasks, dateKey(now), initial.lastRolloverDate, now.toISOString());
-      const next = rolled.changed ? { ...initial, tasks: rolled.tasks, lastRolloverDate: rolled.lastKey } : initial;
+      const filled = { ...initial, notices: { ...defaultNotices(), ...initial.notices } };
+      const next = rolled.changed ? { ...filled, tasks: rolled.tasks, lastRolloverDate: rolled.lastKey } : filled;
       persist(next);
       setReady(true);
-      const seenKey = `zigzag-triage-${dateKey(now)}`;
-      if (!wantsDemo && !params.get('view') && inboxTasks(next.tasks).length > 0 && localStorage.getItem(seenKey) !== '1') {
-        setView('triage');
-      }
       if (params.get('demo') === 'swap') {
         const incoming = next.tasks.find((item) => item.status === 'inbox');
         const upcoming = nextTasks(next.tasks);
@@ -175,8 +208,18 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
     const id = window.setInterval(() => setClock(new Date()), 30000);
     return () => window.clearInterval(id);
   }, []);
-  const rows = deadlineRows({ tasks: snap.tasks, blocks: snap.timeBlocks, events: snap.events, now: clock });
+  const allRows = deadlineRows({ tasks: snap.tasks, blocks: snap.timeBlocks, events: snap.events, now: clock });
+  const parts = splitByDay(allRows, clock);
+  const rows = parts.today;
+  const weekRows = parts.later;
   const summary = deadlineSummary(clock, rows);
+  const notices = { ...defaultNotices(), ...snap.notices };
+  const noticeKey = `${allRows.map((row) => `${row.id}@${row.at}@${row.title}`).join('|')}|${Object.values(notices).join(',')}`;
+
+  useEffect(() => {
+    if (!ready) return;
+    void applyNotices(allRows, notices).catch(() => undefined);
+  }, [ready, noticeKey]);
   const home = homeTarget(snap.integrations);
 
   const capture = (title: string, note = '', source: Task['source'] = 'manual') => {
@@ -189,16 +232,21 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
     }));
   };
 
+  const add = (title: string, slot: Slot) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    const nowIso = new Date().toISOString();
+    const task = createTask({ ownerId, title: trimmed, nowIso });
+    commit((current) => ({
+      ...current,
+      tasks: placeTask([...current.tasks, task], task.id, slot, nowIso),
+    }), true);
+  };
+
   const afterLeave = () => setRecoveryFor(true);
 
   const chooseToday = (taskId: string) => {
-    const nowIso = new Date().toISOString();
-    const result = fileToToday(snapRef.current.tasks, taskId, nowIso);
-    if (result.type === 'swap') {
-      setSwap({ incomingId: taskId, nextIds: result.nextIds });
-      return;
-    }
-    commit((current) => ({ ...current, tasks: result.tasks }));
+    commit((current) => ({ ...current, tasks: placeTask(current.tasks, taskId, 'today', new Date().toISOString()) }));
   };
 
   return {
@@ -211,6 +259,7 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
     canUndo: undo != null,
     blockAsk,
     rows,
+    weekRows,
     summary,
     home,
     now: nowTask(snap.tasks),
@@ -219,7 +268,6 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
     week: tasksIn(snap.tasks, 'week'),
     someday: tasksIn(snap.tasks, 'someday'),
     openToday: () => setView('today'),
-    openTriage: () => setView('triage'),
     openWeek: () => setView('week'),
     openSomeday: () => setView('someday'),
     openProjects: () => setView('projects'),
@@ -238,6 +286,10 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
           hasInbox: inboxTasks(snap.tasks).length > 0,
         })
       : [],
+    syncZoho: (override?: Partial<ProviderLink>) => runZohoSync(override),
+    saveNotices: (next: NoticePrefs) => {
+      commit((current) => ({ ...current, notices: next }));
+    },
     openStuck: () => setStuck('choose'),
     closeStuck: () => setStuck(null),
     pickStuck: (kind: StuckKind) => setStuck(kind),
@@ -245,15 +297,12 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
       const nowIso = new Date().toISOString();
       const result = applyStuckMove(snapRef.current.tasks, choice, nowIso);
       setStuck(null);
-      if (result.openTriage) setView('triage');
+      if (result.openTriage) setView('today');
       commit(() => ({ ...snapRef.current, tasks: result.tasks }));
       if (result.recover) setRecoveryFor(true);
     },
-    dismissTriage: () => {
-      localStorage.setItem(`zigzag-triage-${dateKey(new Date())}`, '1');
-      setView('today');
-    },
     capture,
+    add,
     captureEmail: (rawTitle: string, note: string) => capture(rawTitle, note, 'email'),
     chooseToday,
     chooseWeek: (taskId: string) => {
@@ -285,9 +334,6 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
         return withTombstones({ ...current, tasks: removed.tasks }, removed.removed);
       }, true);
     },
-    skip: (taskId: string) => {
-      commit((current) => ({ ...current, tasks: skipInbox(current.tasks, taskId, new Date().toISOString()) }));
-    },
     sendRest: (keepId: string) => {
       commit((current) => ({ ...current, tasks: sendRestToSomeday(current.tasks, keepId, new Date().toISOString()) }), true);
     },
@@ -312,12 +358,7 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
       commit((current) => ({ ...current, tasks: swapNowWithNext(current.tasks, new Date().toISOString()) }));
     },
     makeNow: (taskId: string) => {
-      const result = makeNow(snapRef.current.tasks, taskId, new Date().toISOString());
-      if (result.type === 'swap') {
-        setSwap({ incomingId: taskId, nextIds: result.nextIds });
-        return;
-      }
-      commit((current) => ({ ...current, tasks: result.tasks }));
+      commit((current) => ({ ...current, tasks: placeTask(current.tasks, taskId, 'now', new Date().toISOString()) }));
     },
     saveWhy: (taskId: string, why: string) => {
       commit((current) => ({ ...current, tasks: setWhy(current.tasks, taskId, why, new Date().toISOString()) }));
@@ -339,20 +380,20 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
       const event = snapRef.current.events.find((item) => item.id === eventId);
       if (!event) return;
       const nowIso = new Date().toISOString();
-      commit((current) => ({
-        ...current,
-        tasks: [
-          ...current.tasks,
-          createTask({
-            ownerId,
-            title: event.title,
-            nowIso,
-            source: 'calendar',
-            dueDate: event.start,
-            externalRefs: [{ system: 'calendar', kind: 'event', id: event.id, eventId: event.eventId }],
-          }),
-        ],
-      }));
+      commit((current) => {
+        const task = createTask({
+          ownerId,
+          title: event.title,
+          nowIso,
+          source: 'calendar',
+          dueDate: event.start,
+          externalRefs: [{ system: 'calendar', kind: 'event', id: event.id, eventId: event.eventId }],
+        });
+        return {
+          ...current,
+          tasks: placeTask([...current.tasks, task], task.id, openSlot(current.tasks), nowIso),
+        };
+      });
     },
     acceptRecovery: (minutes: 15 | 30 | 60) => {
       setRecoveryFor(false);
@@ -395,7 +436,7 @@ export function usePlanner(store: DataStore | null, ownerId = 'local') {
     },
     importOpenWork: (update: OpenWorkUpdate) => {
       commit((current) => applyOpenWork(current, update, new Date().toISOString(), ownerId));
-      setView('triage');
+      setView('today');
     },
     keepConflict: (taskId: string, eventStart: string, etag: string) => {
       const nowIso = new Date().toISOString();

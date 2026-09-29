@@ -4,17 +4,15 @@ ZigZag shows the time so you can see where you are. It does not run a countdown,
 
 ## The top line
 
-The line under the name is the clock, in Pacific time. If something is dated in the next seven days, the same line names it, for example:
+The line under the name is the clock, in Pacific time, plus what is dated today. Later dates in the next seven days are on This week.
 
-**3:40 pm · Next: Today 4:00 pm · Staff meeting**
-
-Tap that line to open the list. The list can include:
+Tap that line to open today's list. The list can include:
 
 - A task with a due date
 - A recovery block
 - A Zoho or Google event
 
-Each row says what it is: Task, Recovery, Zoho, or Google. A meeting is not a task. **Add to inbox** turns one into an inbox card when you want that.
+Each row says what it is: Task, Recovery, Zoho, or Google. A meeting is not a task. **Add to today** turns one into a task when you want that. If Today is already filled, the button says **Add to this week**.
 
 There is no month grid.
 

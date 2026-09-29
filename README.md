@@ -4,7 +4,7 @@ ZigZag Neurodivergent Planner. The folder is `focus`. The app on your phone is Z
 
 Daily use is in [docs/knowledge-base/index.md](docs/knowledge-base/index.md). This file is for running and connecting the project.
 
-One list in, a short triage, then Today: one Now, at most two Next, and a place to capture the next thing. Deep Roots Journal sends only the work that still needs you. Zoho Calendar and Google Calendar show the next few days and can hold a block you create here.
+Add something and it lands on Now, Today, or This week in that same step. Today keeps one Now and at most two Next. Deep Roots Journal sends only the work that still needs you. Zoho Calendar and Google Calendar show the next few days and can hold a block you create here.
 
 Nothing in this app is Todoist, TickTick, or a paid plugin.
 
@@ -23,11 +23,11 @@ Open http://localhost:5173. With no `.env` file, tasks stay in this browser. Tha
 ## What Today does
 
 - The clock and the next real thing sit on one line. Open it for the next 7 days. There is no month grid.
-- Now holds one task. Next holds two. A third asks which one moves to This week.
+- Now holds one task. Next holds two. A further item goes to This week.
 - Done, Park, and Swap do not ask why. After Done or Park, "Block recovery?" can be ignored.
 - Why this? can stay blank. The app does not write it for you.
 - Unfinished Today items move to This week the next day. The app does not count them.
-- Capture is the text field. Enter saves it to the inbox. `c` or Ctrl/Cmd+K focuses it.
+- Add something is the text field. Enter uses the open spot. Now, Today, and This week are on the same row. `c` or Ctrl/Cmd+K focuses it.
 - From Zoho Mail, share text to ZigZag. The first line becomes the title.
 
 ## Optional sign-in

@@ -38,7 +38,7 @@ Leave them empty and the worker does nothing. Today stays as it is.
 
 ## Until that worker is running
 
-Settings has **Import a Deep Roots snapshot**. Paste JSON with an `items` list and tap **Save**. Those cards go to triage.
+Settings has **Import a Deep Roots snapshot**. Paste JSON with an `items` list and tap **Save**. Those cards show on Today, waiting to be placed.
 
 A snapshot looks like this:
 

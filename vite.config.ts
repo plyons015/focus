@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'ZigZag Neurodivergent Planner',
         short_name: 'ZigZag',
-        description: 'Capture, triage, and do the one Now.',
+        description: 'Add it where it goes, then do the one Now.',
         start_url: '/',
         display: 'standalone',
         background_color: '#f3efe6',

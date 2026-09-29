@@ -15,14 +15,14 @@ export const articles: HelpArticle[] = [
     id: 'get-started',
     title: 'Get Started',
     blocks: [
-      { type: 'p', text: 'ZigZag is one sentence: capture, triage, do the one Now.' },
+      { type: 'p', text: 'ZigZag is one sentence: add it where it goes, then do the one Now.' },
       { type: 'h', text: 'The first time you open it' },
       {
         type: 'li',
         items: [
           'You land on Today. The line at the top is the time.',
-          'Type one thing in Add something and press Enter. It goes to the inbox. You do not file it yet.',
-          'Tap Inbox when you want to sort. One card. Today, This week, Someday, or Delete.',
+          'Type one thing in Add something. Enter puts it in the open spot: Now if Now is empty, Today if Next has room, or This week when those are filled.',
+          'Or tap Now, Today, or This week under the field. That is the whole step. There is no second screen.',
           'Today holds one Now card and at most two Next cards. That is the whole work surface.',
         ],
       },
@@ -38,7 +38,7 @@ export const articles: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Attention is time blindness, interest, admin drain, and hyperfocus then a crash. The top line names the time and the next real thing. It is not a countdown. Capture first and sort later, so filing is not part of catching the thought. One Now is the work. Leave Why blank when you have no sentence yet.',
+        text: 'Attention is time blindness, interest, admin drain, and hyperfocus then a crash. The top line names the time and the next real thing. It is not a countdown. Type the thing and tap where it goes, on the same screen. One Now is the work. Leave Why blank when you have no sentence yet.',
       },
       {
         type: 'p',
@@ -92,7 +92,7 @@ export const articles: HelpArticle[] = [
           'Park this and start the first Next. The old Now goes to This week.',
           'Send Now to This week. Now is left empty on purpose. Next does not jump up by itself.',
           'Start the first Next, when Now is already empty.',
-          'Sort the inbox, when cards are waiting there.',
+          'Place what is waiting, when a card is sitting under Add something.',
           'Block recovery, when nothing is sitting in Now.',
         ],
       },
@@ -106,7 +106,7 @@ export const articles: HelpArticle[] = [
     id: 'connect-deep-roots',
     title: 'Connect Deep Roots',
     blocks: [
-      { type: 'p', text: 'Deep Roots cards land in the inbox. ZigZag stores a title, a date, and a link. Journal writing stays in Deep Roots. Today works before this is connected.' },
+      { type: 'p', text: 'Deep Roots cards show on Today, under Add something. ZigZag stores a title, a date, and a link. Journal writing stays in Deep Roots. Today works before this is connected.' },
       { type: 'h', text: 'In Settings' },
       {
         type: 'li',
@@ -124,7 +124,7 @@ export const articles: HelpArticle[] = [
       },
       {
         type: 'p',
-        text: 'Until that worker is running, paste a snapshot into Import a Deep Roots snapshot and tap Save. The JSON needs an items list. Those cards go to triage.',
+        text: 'Until that worker is running, paste a snapshot into Import a Deep Roots snapshot and tap Save. The JSON needs an items list. Those cards show on Today, waiting to be placed.',
       },
       { type: 'h', text: 'What shows up' },
       {
@@ -137,21 +137,26 @@ export const articles: HelpArticle[] = [
     id: 'connect-zoho',
     title: 'Connect Zoho',
     blocks: [
-      { type: 'p', text: 'Mail share and the calendar are two connections. In Zoho Mail, share the message as plain text and choose ZigZag Planner. The first line is the title. Settings has no mail row.' },
-      { type: 'h', text: 'Calendar, one time' },
+      { type: 'p', text: 'Zoho connects to ZigZag directly. Deep Roots is not part of this.' },
+      { type: 'p', text: 'Mail share is separate. In Zoho Mail, share the message as plain text and choose ZigZag Planner. The first line is the title.' },
+      { type: 'h', text: 'Calendar' },
       {
         type: 'li',
         items: [
           'Open the Zoho API Console and create a Self Client.',
           'Scopes: ZohoCalendar.calendar.READ and ZohoCalendar.event.ALL.',
-          'Generate a code, exchange it for a refresh token, and store the client id, client secret, and refresh token on the Deep Roots functions.',
-          'The token is not pasted into ZigZag.',
+          'Generate a code and exchange it for a refresh token.',
+          'In ZigZag Settings, under Zoho, paste the client id, client secret, refresh token, and the calendar id.',
+          'Tap Sync now.',
         ],
       },
-      { type: 'h', text: 'In Settings' },
       {
         type: 'p',
-        text: 'Under Zoho, paste the calendar id you want new blocks written to, then Save. Connected means the id is saved. That calendar becomes home. If Google was home, it no longer is. Events show up after the next sync. If Zoho does not answer, your tasks are still here.',
+        text: 'Connected means the token and the calendar id are both saved. An event dated today shows on Today, in the time line. A later date in the next seven days shows on This week. Add to today turns that event into a task. If Today already has its Now and two Next, the button says Add to this week.',
+      },
+      {
+        type: 'p',
+        text: 'Sync from the phone. A computer browser often cannot reach Zoho. After the phone syncs, the website follows. If Zoho does not answer, your tasks are still here.',
       },
     ],
   },
@@ -216,9 +221,9 @@ export const articles: HelpArticle[] = [
     id: 'today',
     title: 'Today',
     blocks: [
-      { type: 'p', text: 'Today is the screen you live on. Top to bottom: the time line, one Now, up to two Next, and Add something.' },
-      { type: 'p', text: 'Done, Park, and Swap do not ask for a reason. Make this Now on a Next card moves it up and puts the old Now in its place.' },
-      { type: 'p', text: 'If a third item tries to join Next, ZigZag asks which one moves to This week. You can also send the new one to This week.' },
+      { type: 'p', text: 'Today is the screen you live on. Top to bottom: the time line, Add something, one Now, and up to two Next.' },
+      { type: 'p', text: 'Done, Park, and Swap do not ask for a reason. Make this Now on a Next card moves it up and puts the old Now in its place. If Next already has two, the later one moves to This week.' },
+      { type: 'p', text: 'Enter on Add something uses the open spot. Now, Today, and This week under the field place it in one tap. A shared note or a Deep Roots card sits there as one waiting card, with the same places.' },
       { type: 'p', text: 'The next day, anything still in Now or Next moves to This week. There is no count.' },
     ],
   },
@@ -226,18 +231,18 @@ export const articles: HelpArticle[] = [
     id: 'capture',
     title: 'Capture',
     blocks: [
-      { type: 'p', text: 'Add something, then Enter. The field clears. The item waits in the inbox.' },
-      { type: 'p', text: 'On the phone, share plain text from Zoho Mail to ZigZag Planner. The first line is the title. The rest is the note.' },
+      { type: 'p', text: 'Type in Add something. Enter puts it in the open spot, and the field clears. Now, Today, and This week under the field do that in one tap.' },
+      { type: 'p', text: 'On the phone, share plain text from Zoho Mail to ZigZag Planner. The first line is the title. The rest is the note. It shows on Today as a waiting card.' },
       { type: 'p', text: 'On a computer, c or Ctrl+K focuses the field when you are not already typing.' },
     ],
   },
   {
     id: 'triage',
-    title: 'Triage',
+    title: 'Where it goes',
     blocks: [
-      { type: 'p', text: 'Open the inbox from Today. One card at a time. The line says how many are left.' },
-      { type: 'p', text: 'Today fills Now first, then Next. This week and Someday hold the card. Delete can be undone for a few seconds. Skip puts the card at the back.' },
-      { type: 'p', text: 'On the first open of a day, triage shows itself if the inbox has anything. Back to Today dismisses it until tomorrow.' },
+      { type: 'p', text: 'You place an item while you add it. There is no inbox screen and no second pass.' },
+      { type: 'p', text: 'Now is the one card. Today means Next, unless Now is empty, in which case it becomes Now. This week is the bench. When Now and both Next spots are filled, Enter and Today send the new item to This week.' },
+      { type: 'p', text: 'A waiting card is something that arrived on its own: a shared email, or Deep Roots. The same buttons place it. Someday and Delete are on that card. Delete can be undone for a few seconds.' },
     ],
   },
   {
@@ -253,8 +258,8 @@ export const articles: HelpArticle[] = [
     id: 'time',
     title: 'Time and recovery',
     blocks: [
-      { type: 'p', text: 'The top line is the clock, in Pacific time, plus the next dated thing in the coming week. Tap it for the list. Rows say Task, Recovery, Zoho, or Google.' },
-      { type: 'p', text: 'A meeting is not a task until you tap Add to inbox. A due date is set in Details. It is not labeled late.' },
+      { type: 'p', text: 'The top line is the clock, in Pacific time, plus what is dated today. Later dates are on This week. Tap the line for today. Rows say Task, Recovery, Zoho, or Google.' },
+      { type: 'p', text: 'A meeting is not a task until you tap Add to today. If Today is already filled, that button says Add to this week. A due date is set in Details. It is not labeled late.' },
       { type: 'p', text: 'After Done or Park, Block recovery? can be ignored. 15, 30, or 60 minutes, starting at the next half hour.' },
     ],
   },
@@ -263,7 +268,7 @@ export const articles: HelpArticle[] = [
     title: 'Deep Roots',
     blocks: [
       { type: 'p', text: 'ZigZag can show work that still needs you in Deep Roots Journal. It copies titles, dates, and a link. It does not copy journal writing.' },
-      { type: 'p', text: 'New cards land in the inbox. A journal day has Open in Deep Roots and no Done button. Prayer, reading, study, cohort, and action steps can be marked done here once the connection is sending.' },
+      { type: 'p', text: 'New cards show on Today as a waiting card. A journal day has Open in Deep Roots and no Done button. Prayer, reading, study, cohort, and action steps can be marked done here once the connection is sending.' },
       { type: 'p', text: 'Connect it in Settings when you want. Today does not ask you to finish that.' },
     ],
   },
@@ -280,7 +285,7 @@ export const articles: HelpArticle[] = [
     title: 'Settings and this phone',
     blocks: [
       { type: 'p', text: 'Settings holds Deep Roots, Zoho, and Google. Not connected means that row is off. Today still works.' },
-      { type: 'p', text: 'With no sign-in, tasks stay on this device. Share from Zoho Mail lands in the inbox.' },
+      { type: 'p', text: 'With no sign-in, tasks stay on this device. Share from Zoho Mail shows on Today as a waiting card.' },
     ],
   },
 ];

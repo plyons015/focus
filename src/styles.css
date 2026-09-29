@@ -136,6 +136,10 @@ button { cursor: pointer; }
   border-color: var(--teal);
 }
 
+.add { display: flex; flex-direction: column; gap: 0.6rem; margin: 0.75rem 0 1rem; }
+
+.add .quiet { margin: 0; }
+
 .capture {
   width: 100%;
   min-height: 3.25rem;

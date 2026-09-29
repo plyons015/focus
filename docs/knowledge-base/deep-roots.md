@@ -4,7 +4,7 @@ ZigZag can show work that still needs you in Deep Roots Journal. It does not cop
 
 ## What shows up
 
-New items land in the **inbox**, then go through triage. They do not jump onto Now.
+New items show on Today as one waiting card. They do not jump onto Now. Tap **Now**, **Today**, or **This week** to place one.
 
 | From Deep Roots | What you do in ZigZag |
 |---|---|
@@ -22,7 +22,7 @@ Settings → **Connect Deep Roots**.
 
 Paste your Deep Roots user id and the site address, then **Save**. The status says **Connected** or **Not connected**. Today does not nag you to finish this.
 
-Until the sync worker is running, you can paste a snapshot into **Import a Deep Roots snapshot** and tap **Save**. Those cards go to triage.
+Until the sync worker is running, you can paste a snapshot into **Import a Deep Roots snapshot** and tap **Save**. Those cards show on Today, waiting to be placed.
 
 Check-offs you mark on this device wait until Deep Roots is connected, then they send. The note in Settings says that. Your tasks stay here either way.
 

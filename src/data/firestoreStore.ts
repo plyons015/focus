@@ -6,6 +6,7 @@ import {
   writeBatch,
   type Firestore,
 } from 'firebase/firestore';
+import { defaultNotices } from '../domain/notices';
 import { emptyIntegrations, emptySnapshot, type Integrations, type Snapshot } from '../domain/types';
 import type { DataStore } from './store';
 
@@ -44,11 +45,12 @@ export function createFirestoreStore(db: Firestore, uid: string): DataStore {
       }
       unsubs.push(
         onSnapshot(doc(db, 'users', uid, 'meta', 'root'), (snap) => {
-          const data = snap.data() as { integrations?: Integrations; lastRolloverDate?: string | null } | undefined;
+          const data = snap.data() as { integrations?: Integrations; lastRolloverDate?: string | null; notices?: Snapshot['notices'] } | undefined;
           emit({
             ...current,
             integrations: data?.integrations ?? emptyIntegrations(),
             lastRolloverDate: data?.lastRolloverDate ?? null,
+            notices: { ...defaultNotices(), ...data?.notices },
           });
           arrived('meta');
         }),
@@ -76,6 +78,7 @@ export function createFirestoreStore(db: Firestore, uid: string): DataStore {
         ownerId: uid,
         integrations: snapshot.integrations,
         lastRolloverDate: snapshot.lastRolloverDate,
+        notices: snapshot.notices,
       });
       await batch.commit();
     },

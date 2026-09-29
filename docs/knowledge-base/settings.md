@@ -9,7 +9,7 @@ Step by step: [Connect Deep Roots](connect-deep-roots.md), [Connect Zoho](connec
 | Row | What to enter |
 |---|---|
 | Connect Deep Roots | Your Deep Roots user id and the site address. **Save**. |
-| Import a Deep Roots snapshot | A JSON snapshot, if the live sync is not running yet. **Save** sends those cards to triage. |
+| Import a Deep Roots snapshot | A JSON snapshot, if the live sync is not running yet. **Save** puts those cards on Today, waiting. |
 | Zoho | The calendar id you want new blocks written to. **Save** makes it the home calendar. |
 | Google | Same as Zoho. Saving it makes Google home and clears Zoho as home. |
 
@@ -23,4 +23,4 @@ There is no setup progress, no badge, and no first-run wizard. Leaving a row emp
 
 ## One sentence if you forget the shape
 
-Capture, triage, do the one Now.
+Add it where it goes, then do the one Now.

@@ -57,6 +57,17 @@ export function deadlineRows(input: {
   return rows.sort((a, b) => a.at.localeCompare(b.at) || a.title.localeCompare(b.title));
 }
 
+export function splitByDay(rows: DeadlineRow[], now: Date, timeZone = PLAN_TZ): { today: DeadlineRow[]; later: DeadlineRow[] } {
+  const key = dateKey(now, timeZone);
+  const today: DeadlineRow[] = [];
+  const later: DeadlineRow[] = [];
+  for (const row of rows) {
+    if (dateKey(new Date(row.at), timeZone) === key) today.push(row);
+    else later.push(row);
+  }
+  return { today, later };
+}
+
 export function deadlineSummary(now: Date, rows: DeadlineRow[], timeZone = PLAN_TZ): string {
   const clock = formatClock(now, timeZone);
   const next = rows[0];

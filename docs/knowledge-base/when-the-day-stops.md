@@ -18,7 +18,7 @@ Ignoring the recovery line creates nothing. The block starts at the next half ho
 - **Park this and start the first Next.** The old Now goes to This week.
 - **Send Now to This week.** Now is left empty on purpose. Next does not jump up by itself.
 - **Start the first Next**, when Now is already empty.
-- **Sort the inbox**, when cards are waiting there.
+- **Place what is waiting**, when a card is sitting under Add something.
 - **Block recovery**, when nothing is sitting in Now.
 
 Close leaves the day where it was.

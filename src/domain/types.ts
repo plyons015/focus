@@ -101,6 +101,11 @@ export interface ProviderLink {
   home: boolean;
   writeCalendarId: string;
   lastError: string | null;
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+  accountsUrl: string;
+  lastSyncedAt: string | null;
 }
 
 export interface Integrations {
@@ -122,6 +127,7 @@ export interface Snapshot {
   tombstones: Tombstone[];
   integrations: Integrations;
   lastRolloverDate: string | null;
+  notices: import('./notices').NoticePrefs;
 }
 
 export function emptyIntegrations(): Integrations {
@@ -131,6 +137,11 @@ export function emptyIntegrations(): Integrations {
     home: false,
     writeCalendarId: '',
     lastError: null,
+    clientId: '',
+    clientSecret: '',
+    refreshToken: '',
+    accountsUrl: 'https://accounts.zoho.com',
+    lastSyncedAt: null,
   });
   return {
     deeproots: { status: 'off', mcdillUid: '', host: '', lastError: null },
@@ -148,6 +159,7 @@ export function emptySnapshot(): Snapshot {
     tombstones: [],
     integrations: emptyIntegrations(),
     lastRolloverDate: null,
+    notices: { atTime: true, before15: true, before60: true, morningOf: true, eveningBefore: true },
   };
 }
 

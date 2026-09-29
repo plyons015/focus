@@ -1,12 +1,12 @@
 # Get Started
 
-ZigZag is one sentence: capture, triage, do the one Now.
+ZigZag is one sentence: add it where it goes, then do the one Now.
 
 ## The first time you open it
 
 1. You land on Today. The line at the top is the time.
-2. Type one thing in **Add something** and press Enter. It goes to the inbox. You do not file it yet.
-3. Tap **Inbox** when you want to sort. One card. Today, This week, Someday, or Delete.
+2. Type one thing in **Add something**. Enter puts it in the open spot: **Now** if Now is empty, **Today** if Next has room, or **This week** when those are filled.
+3. Or tap **Now**, **Today**, or **This week** under the field. That is the whole step. There is no second screen.
 4. Today holds one Now card and at most two Next cards. That is the whole work surface.
 
 ## During the day
@@ -21,7 +21,7 @@ These are your self-scores, not a diagnosis.
 
 | Area | Score | What to do in ZigZag |
 |---|---|---|
-| Attention / executive | 23 / 24 | The loudest signal: time blindness, interest, admin drain, hyperfocus then a crash. Use the clock line. Capture first, sort later. Keep one Now. Leave Why blank until you have a sentence. |
+| Attention / executive | 23 / 24 | The loudest signal: time blindness, interest, admin drain, hyperfocus then a crash. Use the clock line. Type it and tap where it goes. Keep one Now. Leave Why blank until you have a sentence. |
 | Sensory / environment | 8 / 12 | Crowding and recovery matter. Today is one column. The calendar is a short list, not a grid. |
 | Social communication | 9 / 15 | You want a direct line, not small talk. Buttons name the action. Notes stay short. |
 | Emotions / energy | 10 / 15 | Intensity, and a correction can land hard. Park and Delete can be undone. The app does not score the day. |

@@ -4,10 +4,10 @@ Today is the only screen you need while you are working.
 
 From top to bottom:
 
-1. The time, and the next real thing if one is dated.
-2. One **Now** card.
-3. Up to two **Next** cards.
-4. **Add something**.
+1. The time, and what is dated today.
+2. **Add something**, with **Now**, **Today**, and **This week**.
+3. One **Now** card.
+4. Up to two **Next** cards.
 
 The bar at the bottom moves you to This week, Someday, Projects, and Settings. Come back to Today when you are ready to work.
 
@@ -29,13 +29,11 @@ If Now is empty, the card says **Nothing in Now.** Next stays where it is until 
 
 Next is a short bench, not a list. Two cards at most.
 
-**Make this Now** moves that card up. The old Now takes its place in Next.
-
-If a third item tries to join Next, ZigZag asks: **Next already has two. Which one moves to This week?** You can also **Send the new one to This week**.
+**Make this Now** moves that card up. The old Now takes its place in Next. If Next already has two, the later one moves to This week. ZigZag does not stop to ask.
 
 ## End of the day
 
-The next time you open ZigZag on a new day, anything still in Now or Next moves to This week. There is no banner and no count. Inbox, This week, and Someday stay where they are.
+The next time you open ZigZag on a new day, anything still in Now or Next moves to This week. There is no banner and no count. Waiting cards, This week, and Someday stay where they are.
 
 ## Keyboard
 

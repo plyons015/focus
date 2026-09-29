@@ -4,15 +4,15 @@ These are places for work that is not the one Now.
 
 ## This week
 
-Park sends a Today item here. Triage can send a card here on purpose. At the end of the day, unfinished Now and Next items land here too.
+Park sends a Today item here. **This week** under Add something sends a card here on purpose. At the end of the day, unfinished Now and Next items land here too.
 
-Open a card and tap **Today** or **Make this Now** when you want it on Today. If Now and Next are already full, ZigZag asks which Next item moves aside.
+Open a card and tap **Today** or **Make this Now** when you want it on Today. If Now and Next are already full, **Today** leaves the card on This week, and **Make this Now** brings it up and moves the later Next item here.
 
 An empty list says **Nothing this week.**
 
 ## Someday
 
-Someday is a real list. It is not a junk drawer you are supposed to feel bad about. Items stay until you bring one back with **Today** or **Make this Now**, or you delete it during triage.
+Someday is a real list. Items stay until you bring one back with **Today** or **Make this Now**. A waiting card on Today can also go here with **Someday**.
 
 An empty list says **Someday is empty.**
 

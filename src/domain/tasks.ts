@@ -84,6 +84,51 @@ export type FileResult =
   | { type: 'filed'; tasks: Task[]; becameNow: boolean }
   | { type: 'swap'; tasks: Task[]; nextIds: string[] };
 
+export type Slot = 'now' | 'today' | 'week';
+
+/** The open spot: Now if it is empty, Today if Next has room, otherwise This week. */
+export function openSlot(tasks: Task[]): Slot {
+  if (!nowTask(tasks)) return 'now';
+  if (nextTasks(tasks).length < 2) return 'today';
+  return 'week';
+}
+
+/**
+ * Puts a task in a slot without a follow-up question.
+ * Now stays one item. Next stays at most two. Anything past that goes to This week.
+ */
+export function placeTask(tasks: Task[], taskId: string, slot: Slot, nowIso: string): Task[] {
+  const task = tasks.find((item) => item.id === taskId);
+  if (!task) return tasks;
+  if (slot === 'week') {
+    if (task.status === 'week') return tasks;
+    return replace(tasks, taskId, nowIso, { status: 'week' });
+  }
+  if (slot === 'today') {
+    if (task.status === 'today-now' || task.status === 'today-next') return tasks;
+    if (!nowTask(tasks)) return replace(tasks, taskId, nowIso, { status: 'today-now', sort: 0 });
+    const upcoming = nextTasks(tasks);
+    if (upcoming.length >= 2) return replace(tasks, taskId, nowIso, { status: 'week' });
+    const sort = (upcoming[upcoming.length - 1]?.sort ?? 0) + 1;
+    return replace(tasks, taskId, nowIso, { status: 'today-next', sort });
+  }
+  if (task.status === 'today-now') return tasks;
+  const current = nowTask(tasks);
+  let next = tasks;
+  const upcoming = nextTasks(tasks).filter((item) => item.id !== taskId);
+  if (current && upcoming.length >= 2) {
+    const last = upcoming[upcoming.length - 1];
+    if (last) next = replace(next, last.id, nowIso, { status: 'week' });
+  }
+  const bench = nextTasks(next).filter((item) => item.id !== taskId);
+  const freedSort = task.status === 'today-next' ? task.sort : (bench[bench.length - 1]?.sort ?? 0) + 1;
+  return next.map((item) => {
+    if (item.id === taskId) return touch(item, nowIso, { status: 'today-now', sort: 0 });
+    if (current && item.id === current.id) return touch(item, nowIso, { status: 'today-next', sort: freedSort });
+    return item;
+  });
+}
+
 export function fileToToday(tasks: Task[], taskId: string, nowIso: string): FileResult {
   const task = tasks.find((item) => item.id === taskId);
   if (!task) return { type: 'filed', tasks, becameNow: false };

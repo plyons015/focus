@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { linkStatus } from '../domain/calendar';
 import { copy, stuckLabels } from '../domain/copy';
+import { openSlot, type Slot } from '../domain/tasks';
 import type { ContextTag, Task } from '../domain/types';
 import type { Planner } from '../app/usePlanner';
 
@@ -79,9 +80,21 @@ function toLocalInput(iso: string | null): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function eventAction(tasks: Task[]): string {
+  return openSlot(tasks) === 'week' ? copy.addToWeek : copy.addToToday;
+}
+
 export function TodayScreen({ planner }: { planner: Planner }) {
   const captureRef = useRef<HTMLInputElement>(null);
   const [why, setWhy] = useState(planner.now?.why ?? '');
+  const slot = openSlot(planner.snap.tasks);
+  const waiting = planner.inbox[0];
+  const placeNew = (next: Slot) => {
+    const field = captureRef.current;
+    if (!field) return;
+    planner.add(field.value, next);
+    field.value = '';
+  };
 
   useEffect(() => {
     setWhy(planner.now?.why ?? '');
@@ -115,10 +128,38 @@ export function TodayScreen({ planner }: { planner: Planner }) {
       <button type="button" className="strip" onClick={planner.openDeadlines}>
         {planner.summary}
       </button>
-      {planner.inbox.length > 0 ? (
-        <button type="button" className="ghost" onClick={planner.openTriage}>
-          {copy.inboxLink(planner.inbox.length)}
-        </button>
+      <form
+        className="add"
+        onSubmit={(event) => {
+          event.preventDefault();
+          placeNew(slot);
+        }}
+      >
+        <label className="quiet" htmlFor="capture">{copy.capturePlaceholder}</label>
+        <input id="capture" ref={captureRef} className="capture" autoComplete="off" enterKeyHint="done" />
+        <p className="quiet">{slot === 'now' ? copy.enterNow : slot === 'today' ? copy.enterToday : copy.enterWeek}</p>
+        <div className="row">
+          <button type="button" className={slot === 'now' ? 'primary' : 'ghost'} onClick={() => placeNew('now')}>{copy.now}</button>
+          <button type="button" className={slot === 'today' ? 'primary' : 'ghost'} onClick={() => placeNew('today')}>{copy.today}</button>
+          <button type="button" className={slot === 'week' ? 'primary' : 'ghost'} onClick={() => placeNew('week')}>{copy.thisWeek}</button>
+        </div>
+      </form>
+      {waiting ? (
+        <article className="card">
+          <p className="kicker">{copy.waiting(planner.inbox.length)}</p>
+          <h2>{waiting.title}</h2>
+          {waiting.note ? <p>{waiting.note}</p> : null}
+          <div className="row">
+            <button type="button" className="primary" onClick={() => planner.makeNow(waiting.id)}>{copy.now}</button>
+            <button type="button" className="ghost" onClick={() => planner.chooseToday(waiting.id)}>{copy.today}</button>
+            <button type="button" className="ghost" onClick={() => planner.chooseWeek(waiting.id)}>{copy.thisWeek}</button>
+            <button type="button" className="ghost" onClick={() => planner.chooseSomeday(waiting.id)}>{copy.someday}</button>
+            <button type="button" className="ghost" onClick={() => planner.chooseDelete(waiting.id)}>{copy.delete}</button>
+          </div>
+          {planner.inbox.length > 15 ? (
+            <button type="button" className="ghost" onClick={() => planner.sendRest(waiting.id)}>{copy.sendRest}</button>
+          ) : null}
+        </article>
       ) : null}
       {planner.canUndo ? (
         <div className="toast card">
@@ -228,67 +269,29 @@ export function TodayScreen({ planner }: { planner: Planner }) {
           </div>
         </div>
       ))}
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          const field = captureRef.current;
-          if (!field) return;
-          planner.capture(field.value);
-          field.value = '';
-        }}
-      >
-        <label className="quiet" htmlFor="capture">{copy.capturePlaceholder}</label>
-        <input id="capture" ref={captureRef} className="capture" autoComplete="off" />
-      </form>
-    </section>
-  );
-}
-
-export function TriageScreen({ planner }: { planner: Planner }) {
-  const card = planner.inbox[0];
-  if (!card) {
-    return (
-      <section className="card">
-        <h2>{copy.inboxClear}</h2>
-        <button type="button" className="primary" onClick={planner.dismissTriage}>{copy.today}</button>
-      </section>
-    );
-  }
-  return (
-    <section>
-      <p className="kicker">{copy.inboxLeft(planner.inbox.length)}</p>
-      <article className="card">
-        <h2>{card.title}</h2>
-        {card.note ? <p>{card.note}</p> : null}
-        <p className="quiet">{card.source === 'email' ? copy.email : card.source === 'deeproots' ? copy.fromDeepRoots : card.source === 'calendar' ? copy.comingUp : ''}</p>
-        {card.createdAt ? <p className="quiet">{new Date(card.createdAt).toLocaleString()}</p> : null}
-      </article>
-      <div className="stack">
-        <button type="button" className="primary" onClick={() => planner.chooseToday(card.id)}>{copy.today}</button>
-        <button type="button" className="ghost" onClick={() => planner.chooseWeek(card.id)}>{copy.thisWeek}</button>
-        <button type="button" className="ghost" onClick={() => planner.chooseSomeday(card.id)}>{copy.someday}</button>
-        <button type="button" className="ghost" onClick={() => planner.chooseDelete(card.id)}>{copy.delete}</button>
-        <button type="button" className="ghost" onClick={() => planner.skip(card.id)}>{copy.skip}</button>
-        {planner.inbox.length > 15 ? (
-          <button type="button" className="ghost" onClick={() => planner.sendRest(card.id)}>{copy.sendRest}</button>
-        ) : null}
-        <button type="button" className="ghost" onClick={planner.dismissTriage}>{copy.dismissTriage}</button>
-      </div>
-      {planner.canUndo ? (
-        <div className="toast card">
-          <button type="button" className="ghost" onClick={planner.undo}>{copy.undo}</button>
-        </div>
-      ) : null}
     </section>
   );
 }
 
 export function ListScreen({ planner, which }: { planner: Planner; which: 'week' | 'someday' }) {
   const items = which === 'week' ? planner.week : planner.someday;
+  const dated = which === 'week' ? planner.weekRows : [];
   return (
     <section>
       <h2>{which === 'week' ? copy.thisWeek : copy.someday}</h2>
-      {items.length === 0 ? <p className="quiet">{which === 'week' ? copy.weekEmpty : copy.somedayEmpty}</p> : null}
+      {dated.map((row) => (
+        <article key={row.id} className="card">
+          <p className="kicker">{row.label}</p>
+          <h2>{row.title}</h2>
+          <p>{new Date(row.at).toLocaleString()}</p>
+          {row.addable && row.eventId ? (
+            <button type="button" className="ghost" onClick={() => planner.addEvent(row.eventId!)}>
+              {eventAction(planner.snap.tasks)}
+            </button>
+          ) : null}
+        </article>
+      ))}
+      {items.length === 0 && dated.length === 0 ? <p className="quiet">{which === 'week' ? copy.weekEmpty : copy.somedayEmpty}</p> : null}
       {items.map((task) => (
         <article key={task.id} className="card">
           <h2>{task.title}</h2>
@@ -362,7 +365,7 @@ export function DeadlineScreen({ planner }: { planner: Planner }) {
     <section>
       <button type="button" className="ghost" onClick={planner.openToday}>{copy.back}</button>
       <h2>{copy.comingUp}</h2>
-      {planner.rows.length === 0 ? <p className="quiet">{planner.summary}</p> : null}
+      {planner.rows.length === 0 ? <p className="quiet">{copy.nothingToday}</p> : null}
       {planner.rows.map((row) => (
         <article key={row.id} className="card">
           <p className="kicker">{row.label}</p>
@@ -370,7 +373,7 @@ export function DeadlineScreen({ planner }: { planner: Planner }) {
           <p>{new Date(row.at).toLocaleString()}</p>
           {row.addable && row.eventId ? (
             <button type="button" className="ghost" onClick={() => planner.addEvent(row.eventId!)}>
-              {copy.addToInbox}
+              {eventAction(planner.snap.tasks)}
             </button>
           ) : null}
         </article>
@@ -431,39 +434,91 @@ export function SettingsScreen({ planner }: { planner: Planner }) {
       <CalendarCard planner={planner} provider="zoho" title={copy.zoho} />
       <CalendarCard planner={planner} provider="google" title={copy.google} />
       <p className="quiet">{copy.calendarNote}</p>
+      <section className="card">
+        <h2>{copy.notices}</h2>
+        <p>{copy.noticesNote}</p>
+        <NoticeToggle planner={planner} name="atTime" label={copy.noticeAt} />
+        <NoticeToggle planner={planner} name="before15" label={copy.notice15} />
+        <NoticeToggle planner={planner} name="before60" label={copy.notice60} />
+        <NoticeToggle planner={planner} name="morningOf" label={copy.noticeMorning} />
+        <NoticeToggle planner={planner} name="eveningBefore" label={copy.noticeEvening} />
+      </section>
     </section>
+  );
+}
+
+function NoticeToggle({ planner, name, label }: { planner: Planner; name: keyof Planner['snap']['notices']; label: string }) {
+  const on = planner.snap.notices?.[name] !== false;
+  return (
+    <button
+      type="button"
+      className="list-button"
+      aria-pressed={on}
+      onClick={() => planner.saveNotices({ ...planner.snap.notices, [name]: !on })}
+    >
+      {label} · {on ? copy.noticeOn : copy.noticeOff}
+    </button>
   );
 }
 
 function CalendarCard({ planner, provider, title }: { planner: Planner; provider: 'zoho' | 'google'; title: string }) {
   const link = planner.snap.integrations[provider];
-  const [calendarId, setCalendarId] = useState(link.writeCalendarId);
+  const [calendarId, setCalendarId] = useState(link.writeCalendarId ?? '');
+  const [clientId, setClientId] = useState(link.clientId ?? '');
+  const [clientSecret, setClientSecret] = useState(link.clientSecret ?? '');
+  const [refreshToken, setRefreshToken] = useState(link.refreshToken ?? '');
+  const [accountsUrl, setAccountsUrl] = useState(link.accountsUrl || 'https://accounts.zoho.com');
+  const ready = provider === 'zoho' ? Boolean(clientId.trim() && clientSecret.trim() && refreshToken.trim() && calendarId.trim()) : Boolean(calendarId.trim());
   return (
     <form
       className="card"
       onSubmit={(event) => {
         event.preventDefault();
-        const home = true;
-        const other = provider === 'zoho' ? 'google' : 'zoho';
+        if (provider === 'zoho') {
+          void planner.syncZoho({
+            clientId: clientId.trim(),
+            clientSecret: clientSecret.trim(),
+            refreshToken: refreshToken.trim(),
+            accountsUrl: accountsUrl.trim() || 'https://accounts.zoho.com',
+            writeCalendarId: calendarId.trim(),
+            calendarIds: calendarId.trim() ? [calendarId.trim()] : [],
+            status: ready ? 'connected' : 'off',
+            home: true,
+          });
+          return;
+        }
         planner.saveIntegrations({
           ...planner.snap.integrations,
-          [provider]: {
-            ...link,
+          google: {
+            ...planner.snap.integrations.google,
             status: calendarId.trim() ? 'connected' : 'off',
             writeCalendarId: calendarId.trim(),
             calendarIds: calendarId.trim() ? [calendarId.trim()] : [],
-            home,
+            home: true,
           },
-          [other]: { ...planner.snap.integrations[other], home: false },
+          zoho: { ...planner.snap.integrations.zoho, home: false },
         });
       }}
     >
       <h2>{title}</h2>
-      <p className="quiet">{link.status === 'connected' ? copy.connected : copy.notConnected}</p>
-      {link.lastError ? <p>{link.lastError}</p> : null}
+      <p className="quiet">{ready ? copy.connected : copy.notConnected}</p>
+      {provider === 'zoho' ? (
+        <>
+          <label htmlFor="zoho-client">{copy.zohoClientId}</label>
+          <input id="zoho-client" value={clientId} onChange={(event) => setClientId(event.target.value)} autoComplete="off" />
+          <label htmlFor="zoho-secret">{copy.zohoClientSecret}</label>
+          <input id="zoho-secret" type="password" value={clientSecret} onChange={(event) => setClientSecret(event.target.value)} autoComplete="off" />
+          <label htmlFor="zoho-refresh">{copy.zohoRefresh}</label>
+          <input id="zoho-refresh" type="password" value={refreshToken} onChange={(event) => setRefreshToken(event.target.value)} autoComplete="off" />
+          <label htmlFor="zoho-accounts">{copy.zohoAccounts}</label>
+          <input id="zoho-accounts" value={accountsUrl} onChange={(event) => setAccountsUrl(event.target.value)} autoComplete="off" />
+        </>
+      ) : null}
       <label htmlFor={`${provider}-cal`}>{copy.homeCalendar}</label>
       <input id={`${provider}-cal`} value={calendarId} onChange={(event) => setCalendarId(event.target.value)} autoComplete="off" />
-      <button type="submit" className="ghost">{copy.save}</button>
+      <button type="submit" className="primary">{provider === 'zoho' ? copy.syncNow : copy.save}</button>
+      {link.lastError ? <p>{link.lastError}</p> : null}
+      {provider === 'zoho' && link.lastSyncedAt && !link.lastError ? <p>{copy.synced}</p> : null}
     </form>
   );
 }
